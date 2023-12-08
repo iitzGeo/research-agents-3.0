@@ -1,7 +1,7 @@
 import os
 import requests
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain import PromptTemplate
+from langchain.prompts import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
 from bs4 import BeautifulSoup
 from langchain.chat_models import ChatOpenAI
@@ -14,7 +14,7 @@ import autogen
 
 
 load_dotenv()
-brwoserless_api_key = os.getenv("BROWSERLESS_API_KEY")
+browserless_api_key = os.getenv("BROWSERLESS_API_KEY")
 serper_api_key = os.getenv("SERP_API_KEY")
 airtable_api_key = os.getenv("AIRTABLE_API_KEY")
 config_list = config_list_from_json("OAI_CONFIG_LIST")
@@ -85,13 +85,13 @@ def web_scraping(objective: str, url: str):
     data_json = json.dumps(data)
 
     # Send the POST request
-    response = requests.post(f"https://chrome.browserless.io/content?token={brwoserless_api_key}", headers=headers, data=data_json)
+    response = requests.post(f"https://chrome.browserless.io/content?token={browserless_api_key}", headers=headers, data=data_json)
     
     # Check the response status code
     if response.status_code == 200:
         soup = BeautifulSoup(response.content, "html.parser")
         text = soup.get_text()
-        print("CONTENTTTTTT:", text)
+        print("CONTENTTTTTT:", text[:100], "....")
         if len(text) > 10000:
             output = summary(objective,text)
             return output
@@ -151,7 +151,7 @@ researcher = GPTAssistantAgent(
     name = "researcher",
     llm_config = {
         "config_list": config_list,
-        "assistant_id": "asst_qyvioid5My8K3SdFClaEnwmB"
+        "assistant_id": "asst_Lj1TuDa5fLuVo2HdDToZpW3k"
     }
 )
 
@@ -167,7 +167,7 @@ research_manager = GPTAssistantAgent(
     name="research_manager",
     llm_config = {
         "config_list": config_list,
-        "assistant_id": "asst_C1Ta5XmmEcYD6vnOSVflnwG9"
+        "assistant_id": "asst_tNtRLm2nvlfPVIdkl689U1Kr"
     }
 )
 
@@ -177,7 +177,7 @@ director = GPTAssistantAgent(
     name = "director",
     llm_config = {
         "config_list": config_list,
-        "assistant_id": "asst_zVBJGch5mOyCYl9H1J3L9Ime",
+        "assistant_id": "asst_SfKTAJtihSthgc2W2254AXXJ",
     }
 )
 
@@ -190,12 +190,18 @@ director.register_function(
 
 
 # Create group chat
-groupchat = autogen.GroupChat(agents=[user_proxy, researcher, research_manager, director], messages=[], max_round=15)
+groupchat = autogen.GroupChat(agents=[user_proxy, researcher, research_manager, director], messages=[], max_round=25)
 group_chat_manager = autogen.GroupChatManager(groupchat=groupchat, llm_config={"config_list": config_list})
 
 
 # ------------------ start conversation ------------------ #
 message = """
-Research the funding stage/amount & pricing for each company in the list: https://airtable.com/appj0J4gFpvLrQWjI/tblF4OmG6oLjYtgZl/viwmFx2ttAVrJm0E3?blocks=hide
+    
 """
+
+#Old messages
+    # Why was sam altman fired?   
+    # test message = """
+    # Research the funding stage/amount & pricing for each company in the airtable list: https://airtable.com/appdvwdA9YTn7Bt50/tblWUFABAvm1IMx8J/viwzz6HaOsq7i1Eji?blocks=hide 
+    # """
 user_proxy.initiate_chat(group_chat_manager, message=message)
